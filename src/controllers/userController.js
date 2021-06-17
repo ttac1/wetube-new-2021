@@ -1,4 +1,5 @@
 import User from "../models/User";
+import Video from "../models/Video";
 import fetch from "node-fetch";
 import bcrypt from "bcrypt";
 
@@ -132,7 +133,7 @@ export const startGithubLogin = (req, res) => {
       if (!user) {
         user = await User.create({
           avatarUrl: userData.avatar_url,
-          name: userData.name,
+          name: userData.name? userData.name : "Unknown",
           username: userData.login,
           email: emailObj.email,
           password: "",
@@ -160,7 +161,9 @@ export const startGithubLogin = (req, res) => {
     const {
       session: {user: {_id, avatarUrl, email: sessionEmail, username: sessionUsername}},
       body: {name,email,username,location},
+      file
     } =req;
+    console.log(file);
     let searchParam = [];
     if (sessionEmail !== email) {
         searchParam.push({ email });
@@ -179,7 +182,8 @@ export const startGithubLogin = (req, res) => {
     }
     const updatedUser = await User.findByIdAndUpdate(
       _id,
-      {
+      { 
+        avatarUrl : file ? file.path : avatarUrl,
         name,
         email,
         username,
@@ -222,4 +226,17 @@ export const startGithubLogin = (req, res) => {
     await user.save();
     return res.redirect("/users/logout");
   };
-  export const see = (req, res) => res.send("See User");
+  export const see = async (req, res) => { 
+    const { id } = req.params;
+    const user = await User.findById(id);
+    const videos =await Video.find({ owner: user._id });
+    console.log(videos);
+    if(!user) { 
+      return res.status(404).render("404", {pageTitle: "User not found."});
+    } 
+    return res.render("users/profile", {
+      pageTitle: `${user.name}'s  Profile`,
+       user,
+      videos
+    });
+   };

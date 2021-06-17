@@ -1,5 +1,5 @@
 import Video from "../models/Video.js";
-
+import User from "../models/User";
 
   
 /*
@@ -22,7 +22,8 @@ export const home = async(req, res) => {
 //위가 promise 방식
 export const watch = async(req,res) => {
    const { id } = req.params;
-   const video = await Video.findById(id);
+   const video = await Video.findById(id).populate("owner");
+  
    
    //const id = req.params.id; 윗 줄이랑 같음
    if (video === null) {
@@ -61,12 +62,17 @@ export const postEdit = async(req,res) => {
 export const getUpload = (req, res) => {
    return res.render("upload", {pageTitle :"Upload Video"});
 };
+
 export const postUpload = async (req, res) => {
-   try {
+   const { user: {_id} } =req.session;
+   const {path: fileUrl} = req.file;
    const { title, description, hashtags } = req.body;
+   try {
    await Video.create({ 
       title,
       description,
+      fileUrl,
+      owner:_id,
       createdAt : Date.now(),
       hashtags : Video.formatHashtags(hashtags)
     });
