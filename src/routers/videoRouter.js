@@ -17,7 +17,7 @@ videoRouter.route("/:id([0-9a-f]{24})/delete")
 videoRouter.route("/upload")
 .get(getUpload)
 .all(protectorMiddleware)
-.post(videoUpload.single("video"), postUpload);
+.post(videoUpload.fields([{ name: "video" }, { name: "thumb" }]), postUpload);
 //videoRouter.get("/:id(\\d+)/edit", getEdit);
 //videoRouter.post("/:id(\\d+)/edit", postEdit);
 //이 두줄을 합쳐놓은 것이 위의 한 줄
